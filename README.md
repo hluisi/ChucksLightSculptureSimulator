@@ -1,2 +1,2 @@
-ChucksLightSculptureSimulator
+Chucks Light Sculpture Simulator
 =============================
