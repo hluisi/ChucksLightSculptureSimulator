@@ -16,6 +16,9 @@ class Screen {
     pixelSpacing = blockSize / 2;
     pixelSize = blockSize - pixelSpacing;
     widthOffset = pixelSpacing / 2;
+    
+    //pixelImage = createImage(pixelWidth, pixelHeight, RGB);
+    //pixelImage.loadPixels();
   }
 
   void draw() {
@@ -29,6 +32,8 @@ class Screen {
     } else {
       translate(100, height / 2);
     }
+    
+    if (pixelImage != null) pixelImage.loadPixels();
     for (int j = 0; j < pixelHeight; j++) {
       for (int i = 0; i < pixelWidth; i++) {
         if (pixelImage != null) {
