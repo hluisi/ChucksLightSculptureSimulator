@@ -1,24 +1,30 @@
 import hypermedia.net.*;  // UDP Library 
-Screen screen0, screen1;
 UDP udp;
-PImage[] images; //, image1;
-boolean showImages = false;
+PImage[] images;
+PImage frame;
+boolean drawImages = false;
 
-//int signedByteToInt(byte b)
+final int xSize = 120;
+final int ySize = 65;
 
 void setup() {
-  size(600, 800, P2D);
+  size(xSize * 4, ySize * 4, P2D);
   background(0);
-  screen0 = new Screen(0, true);
-  screen1 = new Screen(1, false);
-  images = new PImage [2];
-  images[0] = createImage(screen0.pixelWidth, screen0.pixelHeight, RGB);
-  images[1] = createImage(screen1.pixelWidth, screen1.pixelHeight, RGB);
-  images[0].loadPixels();
-  images[1].loadPixels();
+  images = new PImage [6];
+  for (int i = 0; i < images.length; i++) {
+    images[i] = createImage(20, 20, RGB);
+    images[i].loadPixels();
+  }
+
+  frame = createImage(xSize, ySize, RGB);
+  frame.loadPixels();
+
+  setupPixelMap();
+
   udp = new UDP( this, 6000 );
   udp.listen( true );
-  //println( (byte) 129 );
+
+  //imageMode(CENTER);
 }
 
 int signedByteToInt(byte b) {
@@ -26,9 +32,23 @@ int signedByteToInt(byte b) {
 }
 
 void draw() {
-  screen1.draw();
-  screen0.draw();
+  if (drawImages) {
+    for (int i = 0; i < frame.pixels.length; i++) {
+      int x = i % xSize;
+      int y = i / xSize;
+      int imageIndex = pMap[x][y].i;
+      if (imageIndex >= 0) {
+        frame.pixels[i] = images[imageIndex].pixels[pMap[x][y].pixelIndex()];
+      } else {
+        frame.pixels[i] = color(0);
+      }
+    }
+    frame.updatePixels();
+    g.copy(frame, 0, 0, frame.width, frame.height, 0, 0, width, height);
+    drawImages = false;
+  }
 }
+
 
 void receive( byte[] data, String ip, int port ) {  // <-- extended handler
   if (data.length != 1202) {
@@ -36,11 +56,10 @@ void receive( byte[] data, String ip, int port ) {  // <-- extended handler
     return;
   }
   int index = (int) data[0];
-  //println(index);
   if (data[1] == 0)
-    showImages = false;
+    drawImages = false;
   else
-    showImages = true;
+    drawImages = true;
 
   data = subset(data, 2); //, data.length);
   int pixelIndex = 0;
@@ -51,15 +70,7 @@ void receive( byte[] data, String ip, int port ) {  // <-- extended handler
     int b = signedByteToInt(data[i+2]);
     images[index].pixels[pixelIndex] = color(r, g, b);
     pixelIndex++;
-    //println("R: " + r + " G: " + g + " B: " + b);
   }
   images[index].updatePixels();
-
-  if (showImages) {
-    screen0.pixelImage = images[0];
-    screen1.pixelImage = images[1]; 
-    showImages = false;
-  }
-  //println( "receive: \""+message+"\" from "+ip+" on port "+port );
 }
 
